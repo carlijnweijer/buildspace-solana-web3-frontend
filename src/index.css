@@ -8,3 +8,7 @@
     font-weight: 500;
   }
 }
+
+html {
+  @apply text-zinc-900;
+}
