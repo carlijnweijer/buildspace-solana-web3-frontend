@@ -12,3 +12,13 @@
 html {
   @apply text-zinc-900;
 }
+
+.card {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.0580941) 99.99%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  backdrop-filter: blur(13px);
+}
