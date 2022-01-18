@@ -22,3 +22,11 @@ html {
   );
   backdrop-filter: blur(13px);
 }
+
+.circle-bg-web3::after {
+  content: url(./assets/circles_web3.svg);
+  position: absolute;
+  top: -10px;
+  left: -5px;
+  z-index: -5;
+}

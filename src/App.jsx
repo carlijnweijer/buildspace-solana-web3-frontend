@@ -92,7 +92,11 @@ function App() {
         </div>
         <h1 className="text-7xl leading-normal">
           <span className="text-8xl font-bold text-purple">Share</span>
-          <br /> your <span className="font-semibold">Web3</span> <br />
+          <br /> your{" "}
+          <span className="relative font-semibold circle-bg-web3">
+            Web3
+          </span>{" "}
+          <br />
           <span className="text-pink">goals</span> for 2022
         </h1>
 
