@@ -1,30 +1,29 @@
-import { forwardRef, useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import { useEffect, useState } from "react";
+import DeadlinePicker from "./components/DeadlinePicker";
+import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
 
 function App() {
   const [walletAddress, setWalletAddress] = useState(null);
+  const [goal, setGoal] = useState("");
+  const [date, setDate] = useState(new Date());
 
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(
-    new Date().setMonth(startDate.getMonth() + 1)
-  );
-
-  useEffect(() => {
-    if (startDate > endDate) setStartDate(endDate);
-  }, [endDate]);
-
-  useEffect(() => {
-    if (startDate > endDate) setEndDate(startDate);
-  }, [startDate]);
+  const [goalsList, setGoalsList] = useState([]);
 
   const TEST_DATA = [
     { id: 1, goal: "Learn Solidity", deadline: "01.02.2022" },
-    { id: 2, goal: "Create my own NFT game", deadline: "01.03.2022" },
+    { id: 2, goal: "Learn Solidity", deadline: "01.02.2022" },
+    { id: 4, goal: "Create my own NFT game", deadline: "01.03.2022" },
     { id: 3, goal: "Mint NFT collection", deadline: "01.04.2022" },
     {
-      id: 4,
+      id: 5,
+      goal: "Build my own DAO with just JavaScript",
+      deadline: "01.05.2022",
+    },
+    { id: 6, goal: "Create my own NFT game", deadline: "01.03.2022" },
+    { id: 6, goal: "Mint NFT collection", deadline: "01.04.2022" },
+    {
+      id: 8,
       goal: "Build my own DAO with just JavaScript",
       deadline: "01.05.2022",
     },
@@ -89,8 +88,8 @@ function App() {
 
   const renderFeed = () => {
     return (
-      <div className="mt-12">
-        {TEST_DATA.map((goal) => (
+      <div className="flex-1 pb-5 overflow-y-auto">
+        {goalsList.map((goal) => (
           <div
             key={goal.id}
             className="text-white p-8 mb-8 border border-lightblue max-w-fit rounded-sm card"
@@ -114,77 +113,62 @@ function App() {
     return () => window.removeEventListener("load", onLoad);
   }, []);
 
+  useEffect(() => {
+    if (walletAddress) {
+      console.log("fetching everyones goals...");
+
+      //Call Solana program here
+
+      //Set state
+      setGoalsList(TEST_DATA);
+    }
+  }, [walletAddress]);
+
+  const sendGoal = async () => {
+    if (goal.length > 0 && date) {
+      console.log("goal: ", goal);
+      console.log("deadline: ", date);
+      setGoalsList([
+        ...goalsList,
+        { id: uuidv4(), goal: goal, deadline: format(date, "dd.MM.yyyy") },
+      ]);
+      setGoal("");
+      setDate(new Date());
+    } else {
+      console.log("Empty goal. Try again.");
+    }
+  };
+
+  const submitAddGoal = (e) => {
+    e.preventDefault();
+    sendGoal();
+    console.log("goalslist is now: ", goalsList);
+  };
+
   const renderAddGoalInput = () => (
-    <div className="flex flex-col gap-4 mt-10">
-      <label class="relative block">
-        <span class="sr-only">Search</span>
+    <form className="flex flex-col gap-4 mt-10" onSubmit={submitAddGoal}>
+      <label className="relative block">
+        <span className="sr-only">Search</span>
         <input
-          class=" placeholder:text-zinc-400 block bg-white w-full rounded-sm border-2 border-pink shadow-[0_4px_34px] shadow-pink z-20 py-2 pl-3 pr-3  focus:outline-none  focus:ring-pink focus:ring-1 sm:text-sm"
+          className=" placeholder:text-zinc-400 block bg-white w-full rounded-sm border-2 border-pink shadow-[0_4px_34px] shadow-pink z-20 py-2 pl-3 pr-3  focus:outline-none  focus:ring-pink focus:ring-1 sm:text-sm"
           placeholder="add your (learning) goal for 2022"
           type="text"
           name="search"
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
         />
       </label>
       <div className="flex gap-8">
-        <div className="relative flex-1">
-          <DatePicker
-            selected={startDate}
-            onChange={(date) => setStartDate(date)}
-            selectsStart
-            startDate={startDate}
-            endDate={endDate}
-            nextMonthButtonLabel=">"
-            previousMonthButtonLabel="<"
-            popperClassName="react-datepicker-left"
-            customInput={<ButtonInput />}
-            renderCustomHeader={({
-              date,
-              decreaseMonth,
-              increaseMonth,
-              prevMonthButtonDisabled,
-              nextMonthButtonDisabled,
-            }) => (
-              <div className="flex items-center justify-between px-2 py-2">
-                <span className="text-lg text-zinc-700">
-                  {format(date, "MMMM yyyy")}
-                </span>
-
-                <div className="space-x-2">
-                  <button
-                    onClick={decreaseMonth}
-                    disabled={prevMonthButtonDisabled}
-                    type="button"
-                    className={`${
-                      prevMonthButtonDisabled && "cursor-not-allowed opacity-50"
-                    } inline-flex p-1 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-pink`}
-                  >
-                    <ChevronLeftIcon className="w-5 h-5 text-zinc-600" />
-                  </button>
-
-                  <button
-                    onClick={increaseMonth}
-                    disabled={nextMonthButtonDisabled}
-                    type="button"
-                    className={`${
-                      nextMonthButtonDisabled && "cursor-not-allowed opacity-50"
-                    } inline-flex p-1 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-pink`}
-                  >
-                    <ChevronRightIcon className="w-5 h-5 text-zinc-600" />
-                  </button>
-                </div>
-              </div>
-            )}
-          />
-        </div>
+        <DeadlinePicker date={date} setDate={setDate} />
         <button className="text-sm bg-pink px-6 py-2 text-white rounded-sm border-2 border-pink shadow-[0_4px_34px] shadow-pink z-20">
           Add!
         </button>
       </div>
-    </div>
+    </form>
   );
 
   return (
-    <div className="App h-screen flex">
+    <div className="App h-screen flex overflow-hidden">
       <div className="w-6/12 relative overflow-hidden px-16 py-20">
         <div className="mb-11">
           <span className="text-7xl">🦄</span>
@@ -215,17 +199,20 @@ function App() {
           </div>
         )}
       </div>
-      <div className="w-6/12 relative bg-zinc-900">
+      <div className="w-6/12 relative bg-zinc-900 pb-8">
         <div className="absolute inset-y-1/3 -left-7 bg-lightblue w-96 h-96 rounded-full blur-[300px]"></div>
         <div className="absolute right-0 -top-7 bg-pink w-96 h-96 rounded-full blur-[300px]"></div>
-        <div className="p-20 relative z-50">
+        <div className="pl-20 pt-20 pb-10 pr-10 max-h-full relative z-50">
           <h2 className="text-white text-6xl leading-normal mb-12">
             The <span className="font-semibold text-pink">goals</span>
             <br />
             of the community
           </h2>
           {!walletAddress && renderWhenNotConnected()}
-          {walletAddress && renderFeed()}
+
+          <div className="relative flex flex-col max-h-[70vh]">
+            {walletAddress && renderFeed()}
+          </div>
         </div>
       </div>
     </div>
@@ -233,14 +220,3 @@ function App() {
 }
 
 export default App;
-
-const ButtonInput = forwardRef(({ value, onClick }, ref) => (
-  <button
-    onClick={onClick}
-    ref={ref}
-    type="button"
-    className="inline-flex justify-start w-full px-3 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-pink"
-  >
-    {format(new Date(value), "dd MMMM yyyy")}
-  </button>
-));
