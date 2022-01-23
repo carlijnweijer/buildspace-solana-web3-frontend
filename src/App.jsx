@@ -1,19 +1,20 @@
 import { useEffect, useState } from "react";
 import DeadlinePicker from "./components/DeadlinePicker";
 import { v4 as uuidv4 } from "uuid";
-import { format } from "date-fns";
-import idl from "./idl.json";
 import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
 import { Program, Provider, web3 } from "@project-serum/anchor";
 import { Buffer } from "buffer";
 window.Buffer = Buffer;
+import idl from "./idl.json";
 import kp from "./keypair.json";
+import { format } from "date-fns";
 
 const { SystemProgram } = web3;
 
 const arr = Object.values(kp._keypair.secretKey);
 const secret = new Uint8Array(arr);
 const baseAccount = web3.Keypair.fromSecretKey(secret);
+
 const programID = new PublicKey(idl.metadata.address);
 
 const network = clusterApiUrl("devnet");
@@ -39,7 +40,7 @@ function App() {
 
           setWalletAddress(response.publicKey.toString());
         } else {
-          alert("solana not found!");
+          alert("solana wallet not found!");
         }
       }
     } catch (error) {
