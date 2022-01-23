@@ -7,11 +7,14 @@ import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
 import { Program, Provider, web3 } from "@project-serum/anchor";
 import { Buffer } from "buffer";
 window.Buffer = Buffer;
+import kp from "./keypair.json";
 
 // SystemProgram is a reference to the Solana runtime!
 const { SystemProgram, Keypair } = web3;
 
-let baseAccount = Keypair.generate();
+const arr = Object.values(kp._keypair.secretKey);
+const secret = new Uint8Array(arr);
+const baseAccount = web3.Keypair.fromSecretKey(secret);
 const programID = new PublicKey(idl.metadata.address);
 
 //set our network to devnet
