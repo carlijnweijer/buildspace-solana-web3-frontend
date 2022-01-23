@@ -6,7 +6,6 @@
   body {
     font-family: "Poppins", sans-serif;
     font-weight: 500;
-    overflow: hidden;
   }
 }
 
@@ -25,11 +24,31 @@ html {
 }
 
 .circle-bg-web3::after {
-  content: url(./assets/circles_web3.svg);
+  content: url(./assets/circlesxs.svg);
   position: absolute;
   top: -10px;
   left: -5px;
   z-index: -5;
+}
+
+@media (min-width: 768px) {
+  .circle-bg-web3::after {
+    content: url(./assets/circles_web3_md.svg);
+    position: absolute;
+    top: -10px;
+    left: -5px;
+    z-index: -5;
+  }
+}
+
+@media (min-width: 1280px) {
+  .circle-bg-web3::after {
+    content: url(./assets/circlesxl.svg);
+    position: absolute;
+    top: -10px;
+    left: -5px;
+    z-index: -5;
+  }
 }
 
 .react-datepicker__input-container button {

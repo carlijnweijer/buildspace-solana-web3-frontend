@@ -9,7 +9,7 @@ import { Buffer } from "buffer";
 window.Buffer = Buffer;
 import kp from "./keypair.json";
 
-const { SystemProgram, Keypair } = web3;
+const { SystemProgram } = web3;
 
 const arr = Object.values(kp._keypair.secretKey);
 const secret = new Uint8Array(arr);
@@ -21,13 +21,6 @@ const network = clusterApiUrl("devnet");
 const opts = {
   preflightCommitment: "processed",
 };
-
-const TEST_DATA = [
-  { id: 1, goal: "Learn Solidity", deadline: "01.02.2022" },
-  { id: 2, goal: "Learn Solidity", deadline: "01.02.2022" },
-  { id: 4, goal: "Create my own NFT game", deadline: "01.03.2022" },
-  { id: 3, goal: "Mint NFT collection", deadline: "01.04.2022" },
-];
 
 function App() {
   const [walletAddress, setWalletAddress] = useState(null);
@@ -95,14 +88,14 @@ function App() {
     if (goalsList === null) {
       return (
         <div>
-          <button onClick={createGoalAccount}>
-            Do One-Time Initialization For Goal Program Account
-          </button>
+          <p className="text-white">
+            Click the button on the right to create your Account
+          </p>
         </div>
       );
     } else {
       return (
-        <div className="flex-1 pb-5 overflow-y-auto">
+        <div className="flex-1 pb-5">
           {goalsList.map((goal) => {
             console.log(goal);
             console.log("deadline is ", typeof goal.goalDeadline);
@@ -213,7 +206,7 @@ function App() {
             <span className="sr-only">Search</span>
             <input
               className=" placeholder:text-zinc-400 block bg-white w-full rounded-sm border-2 border-pink shadow-[0_4px_34px] shadow-pink z-20 py-2 pl-3 pr-3  focus:outline-none  focus:ring-pink focus:ring-1 sm:text-sm"
-              placeholder="add your (learning) goal for 2022"
+              placeholder="add your web3 (learning) goal for 2022"
               type="text"
               name="search"
               value={goal}
@@ -265,17 +258,17 @@ function App() {
   };
 
   return (
-    <div className="App h-screen flex">
-      <div className="w-6/12 relative px-16 py-20">
+    <div className="App flex flex-col md:flex-row md:min-h-screen">
+      <div className="min-h-[50vh] md:w-6/12 relative px-10 xl:px-16 xl:py-20">
         <div className="mb-11">
-          <span className="text-7xl">🦄</span>
+          <span className="text-4xl md:text-5xl xl:text-7xl">🦄</span>
         </div>
-        <h1 className="text-7xl leading-normal">
-          <span className="text-8xl font-bold text-pink">Share</span>
-          <br /> your{" "}
-          <span className="relative font-semibold circle-bg-web3">
-            Web3
-          </span>{" "}
+        <h1 className="text-4xl md:text-5xl xl:text-7xl leading-normal">
+          <span className="text-4xl md:text-6xl xl:text-8xl font-bold text-pink">
+            Share
+          </span>
+          <br /> your
+          <span className="relative font-semibold circle-bg-web3"> Web3 </span>
           <br />
           <span className="text-pink">goals</span> for 2022
         </h1>
@@ -284,9 +277,9 @@ function App() {
 
         <div className="relative w-40"></div>
         <div className="absolute -top-7 -left-36 bg-lightblue w-96 h-96 rounded-full blur-[300px] -z-10"></div>
-        <div className="absolute right-0 -bottom-7 bg-pink w-96 h-96 rounded-full blur-[300px] -z-10"></div>
+        <div className="absolute right-0 bottom-0 bg-pink w-96 h-96 rounded-full blur-[300px] -z-10"></div>
         {!walletAddress && (
-          <div className="absolute bottom-0 left-0 p-14 bg-zinc-900 text-white max-w-xl z-10">
+          <div className="md:absolute bottom-0 left-0 p-6 md:p-14 bg-zinc-900 text-white w-screen -ml-10 mt-12 md:max-w-xl z-10">
             <h2 className="text-2xl">Why should I learn Web3?</h2>
             <p className="font-light text-sm mt-[8px]">
               Learning Web3 is surely a crucial skill for developers to thrive
@@ -296,11 +289,11 @@ function App() {
           </div>
         )}
       </div>
-      <div className="w-6/12 relative bg-zinc-900 pb-8">
+      <div className="md:w-6/12 relative bg-zinc-900 pb-8">
         <div className="absolute inset-y-1/3 -left-7 bg-lightblue w-96 h-96 rounded-full blur-[300px]"></div>
         <div className="absolute right-0 -top-7 bg-pink w-96 h-96 rounded-full blur-[300px]"></div>
-        <div className="pl-20 pt-20 pb-10 pr-10 max-h-full relative z-50">
-          <h2 className="text-white text-6xl leading-normal mb-12">
+        <div className="pl-10 xl:pl-20 pt-20 pb-10 pr-10 max-h-full relative z-50">
+          <h2 className="text-white text-4xl md:text-5xl xl:text-6xl leading-normal mb-12">
             The <span className="font-semibold text-pink">goals</span>
             <br />
             of the community
