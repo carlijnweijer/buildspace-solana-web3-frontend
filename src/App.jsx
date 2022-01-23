@@ -35,13 +35,7 @@ function App() {
     try {
       if (solana) {
         if (solana.isPhantom) {
-          console.log("phantom wallet found!");
-
           const response = await solana.connect({ onlyIfTrusted: true });
-          console.log(
-            "connected with public key:",
-            response.publicKey.toString()
-          );
 
           setWalletAddress(response.publicKey.toString());
         } else {
@@ -97,8 +91,6 @@ function App() {
       return (
         <div className="flex-1 pb-5">
           {goalsList.map((goal) => {
-            console.log(goal);
-            console.log("deadline is ", typeof goal.goalDeadline);
             return (
               <div
                 key={goal.goalId}
@@ -133,25 +125,20 @@ function App() {
         baseAccount.publicKey
       );
 
-      console.log("got the account", account);
       setGoalsList(account.goalList);
     } catch (error) {
-      console.log("error in getgoallist: ", error);
       setGoalsList(null);
     }
   };
 
   useEffect(() => {
     if (walletAddress) {
-      console.log("fetching everyones goals...");
-
       getGoalList();
     }
   }, [walletAddress]);
 
   const sendGoal = async () => {
     if (goal.length <= 0) {
-      console.log("No goal given!");
       return;
     }
 
@@ -184,7 +171,6 @@ function App() {
   const submitAddGoal = (e) => {
     e.preventDefault();
     sendGoal();
-    console.log("goalslist is now: ", goalsList);
   };
 
   const renderAddGoalInput = () => {
