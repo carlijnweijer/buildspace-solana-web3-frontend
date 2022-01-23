@@ -2,32 +2,39 @@ import { useEffect, useState } from "react";
 import DeadlinePicker from "./components/DeadlinePicker";
 import { v4 as uuidv4 } from "uuid";
 import { format } from "date-fns";
+import idl from "./idl.json";
+import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
+import { Program, Provider, web3 } from "@project-serum/anchor";
+import { Buffer } from "buffer";
+window.Buffer = Buffer;
+
+// SystemProgram is a reference to the Solana runtime!
+const { SystemProgram, Keypair } = web3;
+
+let baseAccount = Keypair.generate();
+const programID = new PublicKey(idl.metadata.address);
+
+//set our network to devnet
+const network = clusterApiUrl("devnet");
+
+// controls how we want to acknowledge when a transaction is 'done'
+const opts = {
+  preflightCommitment: "processed",
+};
+
+const TEST_DATA = [
+  { id: 1, goal: "Learn Solidity", deadline: "01.02.2022" },
+  { id: 2, goal: "Learn Solidity", deadline: "01.02.2022" },
+  { id: 4, goal: "Create my own NFT game", deadline: "01.03.2022" },
+  { id: 3, goal: "Mint NFT collection", deadline: "01.04.2022" },
+];
 
 function App() {
   const [walletAddress, setWalletAddress] = useState(null);
   const [goal, setGoal] = useState("");
   const [date, setDate] = useState(new Date());
 
-  const [goalsList, setGoalsList] = useState([]);
-
-  const TEST_DATA = [
-    { id: 1, goal: "Learn Solidity", deadline: "01.02.2022" },
-    { id: 2, goal: "Learn Solidity", deadline: "01.02.2022" },
-    { id: 4, goal: "Create my own NFT game", deadline: "01.03.2022" },
-    { id: 3, goal: "Mint NFT collection", deadline: "01.04.2022" },
-    {
-      id: 5,
-      goal: "Build my own DAO with just JavaScript",
-      deadline: "01.05.2022",
-    },
-    { id: 6, goal: "Create my own NFT game", deadline: "01.03.2022" },
-    { id: 6, goal: "Mint NFT collection", deadline: "01.04.2022" },
-    {
-      id: 8,
-      goal: "Build my own DAO with just JavaScript",
-      deadline: "01.05.2022",
-    },
-  ];
+  const [goalsList, setGoalsList] = useState(null);
 
   const checkIfWalletIsConnected = async () => {
     const { solana } = window;
@@ -37,7 +44,6 @@ function App() {
         if (solana.isPhantom) {
           console.log("phantom wallet found!");
 
-          //the solana object provides a function that will allow us to connect directly with the users wallet
           const response = await solana.connect({ onlyIfTrusted: true });
           console.log(
             "connected with public key:",
@@ -87,21 +93,35 @@ function App() {
   };
 
   const renderFeed = () => {
-    return (
-      <div className="flex-1 pb-5 overflow-y-auto">
-        {goalsList.map((goal) => (
-          <div
-            key={goal.id}
-            className="text-white p-8 mb-8 border border-lightblue max-w-fit rounded-sm card"
-          >
-            <h3 className="text-3xl">{goal.goal}</h3>
-            <p className="font-light text-zinc-50">
-              I will have achieved this on {goal.deadline}
-            </p>
-          </div>
-        ))}
-      </div>
-    );
+    if (goalsList === null) {
+      return (
+        <div>
+          <button onClick={createGoalAccount}>
+            Do One-Time Initialization For Goal Program Account
+          </button>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex-1 pb-5 overflow-y-auto">
+          {goalsList.map((goal) => {
+            console.log(goal);
+            console.log("deadline is ", typeof goal.goalDeadline);
+            return (
+              <div
+                key={goal.goalId}
+                className="text-white p-8 mb-8 border border-lightblue max-w-fit rounded-sm card"
+              >
+                <h3 className="text-3xl">{goal.goalGoal}</h3>
+                <p className="font-light text-zinc-50">
+                  I will have achieved this on {goal.goalDeadline}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
   };
 
   useEffect(() => {
@@ -113,29 +133,59 @@ function App() {
     return () => window.removeEventListener("load", onLoad);
   }, []);
 
+  const getGoalList = async () => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+      const account = await program.account.baseAccount.fetch(
+        baseAccount.publicKey
+      );
+
+      console.log("got the account", account);
+      setGoalsList(account.goalList);
+    } catch (error) {
+      console.log("error in getgoallist: ", error);
+      setGoalsList(null);
+    }
+  };
+
   useEffect(() => {
     if (walletAddress) {
       console.log("fetching everyones goals...");
 
-      //Call Solana program here
-
-      //Set state
-      setGoalsList(TEST_DATA);
+      getGoalList();
     }
   }, [walletAddress]);
 
   const sendGoal = async () => {
-    if (goal.length > 0 && date) {
-      console.log("goal: ", goal);
-      console.log("deadline: ", date);
-      setGoalsList([
-        ...goalsList,
-        { id: uuidv4(), goal: goal, deadline: format(date, "dd.MM.yyyy") },
-      ]);
+    if (goal.length <= 0) {
+      console.log("No goal given!");
+      return;
+    }
+
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+
+      await program.rpc.addGoal(
+        uuidv4(),
+        goal,
+        format(date, "dd.MM.yyyy").toString(),
+        {
+          accounts: {
+            baseAccount: baseAccount.publicKey,
+            user: provider.wallet.publicKey,
+          },
+        }
+      );
+      console.log("Goal successfully sent to program", goal, date);
+
+      await getGoalList();
+
       setGoal("");
       setDate(new Date());
-    } else {
-      console.log("Empty goal. Try again.");
+    } catch (error) {
+      console.log("error sending your goal:", error);
     }
   };
 
@@ -145,27 +195,76 @@ function App() {
     console.log("goalslist is now: ", goalsList);
   };
 
-  const renderAddGoalInput = () => (
-    <form className="flex flex-col gap-4 mt-10" onSubmit={submitAddGoal}>
-      <label className="relative block">
-        <span className="sr-only">Search</span>
-        <input
-          className=" placeholder:text-zinc-400 block bg-white w-full rounded-sm border-2 border-pink shadow-[0_4px_34px] shadow-pink z-20 py-2 pl-3 pr-3  focus:outline-none  focus:ring-pink focus:ring-1 sm:text-sm"
-          placeholder="add your (learning) goal for 2022"
-          type="text"
-          name="search"
-          value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-        />
-      </label>
-      <div className="flex gap-8">
-        <DeadlinePicker date={date} setDate={setDate} />
-        <button className="text-sm bg-pink px-6 py-2 text-white rounded-sm border-2 border-pink shadow-[0_4px_34px] shadow-pink z-20">
-          Add!
-        </button>
-      </div>
-    </form>
-  );
+  const renderAddGoalInput = () => {
+    //if we hit this, it means the program account hasn't been initialized
+    if (goalsList === null) {
+      return (
+        <div>
+          <button
+            className="text-sm bg-darkblue mt-4 px-6 py-2 text-white rounded-sm border-2 border-darkblue shadow-[0_4px_34px] shadow-darkblue z-20"
+            onClick={createGoalAccount}
+          >
+            Do One-Time Initialization For Goal Program Account
+          </button>
+        </div>
+      );
+    } else {
+      return (
+        <form className="flex flex-col gap-4 mt-10" onSubmit={submitAddGoal}>
+          <label className="relative block">
+            <span className="sr-only">Search</span>
+            <input
+              className=" placeholder:text-zinc-400 block bg-white w-full rounded-sm border-2 border-pink shadow-[0_4px_34px] shadow-pink z-20 py-2 pl-3 pr-3  focus:outline-none  focus:ring-pink focus:ring-1 sm:text-sm"
+              placeholder="add your (learning) goal for 2022"
+              type="text"
+              name="search"
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+            />
+          </label>
+          <div className="flex gap-8">
+            <DeadlinePicker date={date} setDate={setDate} />
+            <button className="text-sm bg-pink px-6 py-2 text-white rounded-sm border-2 border-pink shadow-[0_4px_34px] shadow-pink z-20">
+              Add!
+            </button>
+          </div>
+        </form>
+      );
+    }
+  };
+
+  const getProvider = () => {
+    const connection = new Connection(network, opts.preflightCommitment);
+    const provider = new Provider(
+      connection,
+      window.solana,
+      opts.preflightCommitment
+    );
+    return provider;
+  };
+
+  const createGoalAccount = async () => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+      console.log("ping");
+      await program.rpc.startStuffOff({
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          user: provider.wallet.publicKey,
+          systemProgram: SystemProgram.programId,
+        },
+        signers: [baseAccount],
+      });
+      console.log(
+        "created a new baseaccount with address: ",
+        baseAccount.publicKey.toString()
+      );
+      await getGoalList();
+    } catch (error) {
+      console.log("error creating baseAccount account: ", error);
+    }
+  };
 
   return (
     <div className="App h-screen flex overflow-hidden">
