@@ -9,7 +9,6 @@ import { Buffer } from "buffer";
 window.Buffer = Buffer;
 import kp from "./keypair.json";
 
-// SystemProgram is a reference to the Solana runtime!
 const { SystemProgram, Keypair } = web3;
 
 const arr = Object.values(kp._keypair.secretKey);
@@ -17,10 +16,8 @@ const secret = new Uint8Array(arr);
 const baseAccount = web3.Keypair.fromSecretKey(secret);
 const programID = new PublicKey(idl.metadata.address);
 
-//set our network to devnet
 const network = clusterApiUrl("devnet");
 
-// controls how we want to acknowledge when a transaction is 'done'
 const opts = {
   preflightCommitment: "processed",
 };
@@ -73,7 +70,6 @@ function App() {
     }
   };
 
-  //render this if a user hasn't connected their wallet to our app yet
   const renderWhenNotConnected = () => {
     return (
       <div>
@@ -199,7 +195,6 @@ function App() {
   };
 
   const renderAddGoalInput = () => {
-    //if we hit this, it means the program account hasn't been initialized
     if (goalsList === null) {
       return (
         <div>
@@ -270,8 +265,8 @@ function App() {
   };
 
   return (
-    <div className="App h-screen flex overflow-hidden">
-      <div className="w-6/12 relative overflow-hidden px-16 py-20">
+    <div className="App h-screen flex">
+      <div className="w-6/12 relative px-16 py-20">
         <div className="mb-11">
           <span className="text-7xl">🦄</span>
         </div>
